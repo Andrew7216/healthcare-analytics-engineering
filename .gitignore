@@ -1,0 +1,12 @@
+target/
+dbt_packages/
+logs/
+.env
+.env.*
+*.log
+
+__pycache__/
+*.pyc
+
+.vscode/
+.DS_Store

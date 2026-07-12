@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: raw
+    database: ANALYTICS_ENGINEERING_LAB
+    schema: RAW 
+    tables:
+      - name: patients
+      - name: visits
+      - name: providers
+      - name: lab_orders
+      - name: appointments

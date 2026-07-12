@@ -1,0 +1,41 @@
+version: 2
+
+models:
+  - name: rpt_care_gap_outreach_worklist
+    description: >
+      Operational outreach worklist containing patients with currently open 
+      care gaps and their next valid upcoming appointment, when available.
+
+    config:
+      meta:
+        grain: One row per patient per open care gap 
+        owner: Analytics Engineering
+        consumers: Care Management and Outreach teams
+
+
+    columns:
+      - name: patient_id
+        description: Unique identifier for the patient.
+        data_tests:
+          - not_null
+
+      - name: care_gap_id
+        description: Unique identifier for the open care gap.
+        data_tests:
+          - not_null
+
+      - name: care_gap_name
+        description: Business-facing name of the care gap.
+
+      - name: care_gap_reason
+        description: Explanation of why the patient is currently due.
+
+      - name: next_appointment_date
+        description: Date of the patient's nearest valid upcoming appointment.
+
+      - name: has_upcoming_appointment
+        description: Indicates whether the patient has a valid upcoming appointment
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [true, false]

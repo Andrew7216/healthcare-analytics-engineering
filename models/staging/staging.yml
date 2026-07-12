@@ -1,0 +1,42 @@
+version: 2
+
+models:
+  - name: stg_patients
+    description: >
+      Cleaned and standardized patient source data. This model preserves
+      one row per patient and prepares patient attributes for downstream models.
+
+    config:
+      meta:
+        grain: One row per patient
+        layer: Staging
+
+    columns:
+      - name: patient_id
+        description: Unique identifier for the patient.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: first_name
+        description: Patient first name with surrounding whitespace removed.
+
+      - name: last_name
+        description: Patient last name with surrounding whitespace removed.
+
+      - name: female_at_birth
+        description: Indicates whether the patient was recorded as female at birth.
+
+      - name: date_of_birth
+        description: Patient date of birth.
+        data_tests:
+          - not_null
+
+      - name: phone_number
+        description: Patient phone number with surrounding whitespace removed.
+
+      - name: address
+        description: Patient address with surrounding whitespace removed.
+
+      - name: primary_care_provider_id
+        description: Identifier of the patient’s assigned primary care provider.

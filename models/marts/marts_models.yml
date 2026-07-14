@@ -1,0 +1,167 @@
+version: 2
+
+models:
+  - name: dim_patients
+    description: >
+      Patient dimension containing one row per patient. This model provides
+      clean patient demographic and contact information for downstream fact
+      tables, care-gap models, and reporting outputs.
+
+    columns:
+      - name: patient_id
+        description: Unique identifier for the patient.
+        data_tests:
+          - unique
+          - not_null
+
+      - name: first_name
+        description: Patient's first name.
+
+      - name: last_name
+        description: Patient's last name.
+
+      - name: date_of_birth
+        description: Patient's date of birth.
+
+      - name: female_at_birth
+        description: Indicates whether the patient was recorded as female at birth.
+
+      - name: phone_number
+        description: Patient's primary phone number.
+
+  - name: dim_providers
+    description: >
+      Provider dimension containing one row per provider. This model provides
+      provider identity, specialty, and active-status information for visits,
+      appointments, laboratory orders, and reporting models.
+
+    columns:
+      - name: provider_id
+        description: Unique identifier for the provider.
+        data_tests:
+          - unique
+          - not_null
+
+      - name: first_name
+        description: Provider's first name.
+
+      - name: last_name
+        description: Provider's last name.
+
+      - name: provider_name
+        description: Provider's full name created from the first and last name.
+
+      - name: specialty
+        description: Clinical specialty associated with the provider.
+
+      - name: active_yn
+        description: Indicates whether the provider is currently active.
+        data_tests:
+          - not_null
+
+  - name: fct_visits
+    description: >
+      Visit fact table containing one row per valid patient visit. Deleted
+      visits and visits where the patient left without being seen are excluded
+      through the intermediate valid-visits model.
+
+    columns:
+      - name: visit_id
+        description: Unique identifier for the visit.
+        data_tests:
+          - unique
+          - not_null
+
+      - name: patient_id
+        description: Identifier of the patient associated with the visit.
+        data_tests:
+          - not_null
+
+      - name: provider_id
+        description: Identifier of the provider associated with the visit.
+        data_tests:
+          - not_null
+
+      - name: visit_date
+        description: Date on which the patient visit occurred.
+        data_tests:
+          - not_null
+
+      - name: visit_type
+        description: Type or modality of the patient visit.
+
+      - name: visit_status
+        description: Status of the patient visit.
+
+  - name: fct_appointments
+    description: >
+      Appointment fact table containing one row per appointment. The model
+      retains all appointment statuses, including completed, cancelled, and
+      no-show appointments, so appointment activity and outcomes can be
+      measured accurately.
+
+    columns:
+      - name: appointment_id
+        description: Unique identifier for the appointment.
+        data_tests:
+          - unique
+          - not_null
+
+      - name: patient_id
+        description: Identifier of the patient associated with the appointment.
+        data_tests:
+          - not_null
+
+      - name: provider_id
+        description: Identifier of the provider associated with the appointment.
+        data_tests:
+          - not_null
+
+      - name: appointment_date
+        description: Date on which the appointment was scheduled.
+        data_tests:
+          - not_null
+
+      - name: appointment_time
+        description: Scheduled time of the appointment in 24-hour time.
+
+      - name: appointment_type
+        description: Type of appointment that was scheduled.
+
+  - name: fct_lab_order
+    description: >
+      Laboratory-order fact table containing one row per valid laboratory
+      order. The model contains non-deleted laboratory orders that have a
+      recorded result and supports clinical reporting and care-gap analysis.
+
+    columns:
+      - name: lab_order_id
+        description: Unique identifier for the laboratory order.
+        data_tests:
+          - unique
+          - not_null
+
+      - name: patient_id
+        description: Identifier of the patient associated with the laboratory order.
+        data_tests:
+          - not_null
+
+      - name: provider_id
+        description: Identifier of the provider associated with the laboratory order.
+        data_tests:
+          - not_null
+
+      - name: order_date
+        description: Date on which the laboratory test was ordered.
+        data_tests:
+          - not_null
+
+      - name: result_date
+        description: Date on which the laboratory result was recorded.
+        data_tests:
+          - not_null
+
+      - name: test_name
+        description: Name of the laboratory test that was ordered.
+        data_tests:
+          - not_null

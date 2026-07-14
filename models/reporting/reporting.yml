@@ -1,41 +1,391 @@
 version: 2
 
 models:
-  - name: rpt_care_gap_outreach_worklist
+  - name: rpt_all_care_gaps
     description: >
-      Operational outreach worklist containing patients with currently open 
-      care gaps and their next valid upcoming appointment, when available.
-
-    config:
-      meta:
-        grain: One row per patient per open care gap 
-        owner: Analytics Engineering
-        consumers: Care Management and Outreach teams
-
-
+      Combines all supported patient care-gap results into one standardized
+      reporting table. Each row represents one patient evaluated for one
+      care gap, regardless of whether the care gap is currently due.
     columns:
       - name: patient_id
-        description: Unique identifier for the patient.
+        description: Unique identifier for the patient evaluated for the care gap.
         data_tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_patients')
+                field: patient_id
 
       - name: care_gap_id
-        description: Unique identifier for the open care gap.
+        description: Numeric identifier assigned to the specific care-gap measure.
         data_tests:
           - not_null
+          - accepted_values:
+              arguments:
+                values: [1, 2]
 
       - name: care_gap_name
-        description: Business-facing name of the care gap.
-
-      - name: care_gap_reason
-        description: Explanation of why the patient is currently due.
-
-      - name: next_appointment_date
-        description: Date of the patient's nearest valid upcoming appointment.
-
-      - name: has_upcoming_appointment
-        description: Indicates whether the patient has a valid upcoming appointment
+        description: Descriptive name of the care-gap measure.
         data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - Diabetes A1C
+                  - Lead Screening
+
+      - name: care_gap_due
+        description: Boolean indicating whether the patient currently has the care gap.
+        data_tests:
+          - not_null
           - accepted_values:
               arguments:
                 values: [true, false]
+                quote: false
+
+      - name: care_gap_status
+        description: Status indicating whether the care gap is due.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - Due
+                  - Not Due
+
+      - name: care_gap_reason
+        description: Explanation of why the care gap is considered due or not due.
+        data_tests:
+          - not_null
+
+
+  - name: rpt_care_gaps_due
+    description: >
+      Filters the standardized care-gap results to patients with an active
+      care gap. Each row represents one patient and one care gap requiring
+      follow-up or outreach.
+    columns:
+      - name: patient_id
+        description: Unique identifier for the patient with the active care gap.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_patients')
+                field: patient_id
+
+      - name: care_gap_id
+        description: Numeric identifier for the care-gap measure requiring follow-up.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1, 2]
+
+      - name: care_gap_name
+        description: Descriptive name of the care-gap measure requiring follow-up.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - Diabetes A1C
+                  - Lead Screening
+
+      - name: care_gap_reason
+        description: Explanation of why the patient is currently due for the care gap.
+        data_tests:
+          - not_null
+
+
+  - name: rpt_care_gap_outreach_worklist
+    description: >
+      Business-facing outreach worklist that combines active patient care gaps
+      with patient demographics and the patient's next scheduled appointment.
+      Each row represents one patient and one active care gap requiring
+      outreach or care coordination.
+    columns:
+      - name: patient_id
+        description: Unique identifier for the patient requiring outreach.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_patients')
+                field: patient_id
+
+      - name: first_name
+        description: Patient's first name.
+
+      - name: last_name
+        description: Patient's last name.
+
+      - name: date_of_birth
+        description: Patient's date of birth.
+
+      - name: care_gap_name
+        description: Name of the care gap requiring outreach.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - Diabetes A1C
+                  - Lead Screening
+
+      - name: care_gap_reason
+        description: Explanation of why the patient currently has the care gap.
+        data_tests:
+          - not_null
+
+      - name: appointment_id
+        description: >
+          Unique identifier for the patient's next scheduled appointment,
+          when an eligible upcoming appointment is available.
+
+      - name: next_appointment_date
+        description: Date of the patient's next eligible scheduled appointment.
+
+      - name: next_appointment_time
+        description: Time of the patient's next eligible scheduled appointment.
+
+      - name: next_appointment_type
+        description: Type of the patient's next eligible scheduled appointment.
+
+      - name: provider_name
+        description: Name of the provider assigned to the next scheduled appointment.
+
+      - name: specialty
+        description: Clinical specialty of the provider assigned to the next appointment.
+
+
+  - name: rpt_diabetes_care_gap
+    description: >
+      Evaluates each patient for the Diabetes A1C care gap. Patients between
+      ages 18 and 75 are considered due when they have no resulted A1C or
+      their latest resulted A1C is more than 365 days old. Each row represents
+      one patient.
+    columns:
+      - name: patient_id
+        description: Unique identifier for the patient evaluated for the A1C care gap.
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('dim_patients')
+                field: patient_id
+
+      - name: first_name
+        description: Patient's first name.
+
+      - name: last_name
+        description: Patient's last name.
+
+      - name: date_of_birth
+        description: Patient's date of birth.
+
+      - name: current_age
+        description: Patient's age in completed years as of the current date.
+
+      - name: latest_a1c_result_date
+        description: Date of the patient's most recent resulted A1C laboratory order.
+
+      - name: days_since_latest_a1c
+        description: >
+          Number of days between the latest resulted A1C and the current date.
+          Null when the patient has no resulted A1C.
+
+      - name: care_gap_due
+        description: >
+          Boolean indicating whether the patient is between ages 18 and 75
+          and is missing a current A1C result.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true, false]
+                quote: false
+
+      - name: care_gap_status
+        description: Indicates whether the patient's Diabetes A1C care gap is due.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - Due
+                  - Not Due
+
+      - name: care_gap_reason
+        description: Explanation of the patient's Diabetes A1C care-gap status.
+        data_tests:
+          - not_null
+
+
+  - name: rpt_latest_a1c_by_patient
+    description: >
+      Returns the most recent resulted A1C laboratory order for each patient
+      with an A1C result. Each row represents one patient with a resulted A1C.
+    columns:
+      - name: patient_id
+        description: Unique identifier for the patient with the resulted A1C.
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('dim_patients')
+                field: patient_id
+
+      - name: lab_order_id
+        description: Unique identifier for the patient's latest resulted A1C order.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: latest_a1c_result_date
+        description: Date of the patient's most recent resulted A1C order.
+        data_tests:
+          - not_null
+
+      - name: latest_a1c_value
+        description: Result value from the patient's most recent A1C order.
+
+
+  - name: rpt_latest_lead_screening_by_patient
+    description: >
+      Returns the most recent resulted lead-screening laboratory order for
+      each patient with a lead-screening result. Each row represents one
+      patient with a resulted lead screening.
+    columns:
+      - name: patient_id
+        description: Unique identifier for the patient with the lead-screening result.
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('dim_patients')
+                field: patient_id
+
+      - name: lab_order_id
+        description: >
+          Unique identifier for the patient's latest resulted
+          lead-screening order.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: latest_lead_result_date
+        description: Date of the patient's most recent resulted lead-screening order.
+        data_tests:
+          - not_null
+
+      - name: latest_lead_result_value
+        description: Result value from the patient's most recent lead-screening order.
+
+
+  - name: rpt_lead_screening_care_gap
+    description: >
+      Evaluates each patient for the lead-screening care gap. Patients between
+      ages one and five are considered due when they do not have a resulted
+      lead-screening laboratory order. Each row represents one patient.
+    columns:
+      - name: patient_id
+        description: >
+          Unique identifier for the patient evaluated for the
+          lead-screening care gap.
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('dim_patients')
+                field: patient_id
+
+      - name: first_name
+        description: Patient's first name.
+
+      - name: last_name
+        description: Patient's last name.
+
+      - name: date_of_birth
+        description: Patient's date of birth.
+
+      - name: current_age
+        description: Patient's age in completed years as of the current date.
+
+      - name: latest_lead_result_date
+        description: Date of the patient's most recent resulted lead-screening order.
+
+      - name: latest_lead_result_value
+        description: Result value from the patient's most recent lead-screening order.
+
+      - name: care_gap_due
+        description: >
+          Boolean indicating whether the patient is between ages one and five
+          and has no resulted lead screening.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true, false]
+                quote: false
+
+      - name: care_gap_status
+        description: Indicates whether the patient's lead-screening care gap is due.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - Due
+                  - Not Due
+
+      - name: care_gap_reason
+        description: Explanation of the patient's lead-screening care-gap status.
+        data_tests:
+          - not_null
+
+
+  - name: rpt_next_appointment_by_patient
+    description: >
+      Returns each patient's next scheduled appointment on or after the
+      current date, excluding appointments with a Cancelled or No Show status.
+      Each row represents one patient with an upcoming eligible appointment.
+    columns:
+      - name: patient_id
+        description: Unique identifier for the patient with the upcoming appointment.
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('dim_patients')
+                field: patient_id
+
+      - name: appointment_id
+        description: Unique identifier for the patient's next eligible appointment.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: provider_id
+        description: Unique identifier for the provider assigned to the appointment.
+
+      - name: appointment_date
+        description: Date of the patient's next eligible appointment.
+        data_tests:
+          - not_null
+
+      - name: appointment_time
+        description: Scheduled time of the patient's next eligible appointment.
+
+      - name: appointment_type
+        description: Type or reason associated with the appointment.
+
+      - name: appointment_status
+        description: Current status of the upcoming appointment.
+        data_tests:
+          - not_null

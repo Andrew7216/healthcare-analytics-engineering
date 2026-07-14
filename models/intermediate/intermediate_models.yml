@@ -1,0 +1,71 @@
+version: 2
+
+models:
+  - name: int_valid_visits
+    description: >
+      Contains valid patient visits after removing deleted visits and visits
+      where the patient left without being seen. This model creates the clean
+      visit population used by downstream fact tables and reporting models.
+
+    columns:
+      - name: visit_id
+        description: Unique identifier for the visit.
+        data_tests:
+          - unique
+          - not_null
+
+      - name: patient_id
+        description: Unique identifier for the patient associated with the visit.
+        data_tests:
+          - not_null
+
+      - name: provider_id
+        description: Unique identifier for the rendering provider associated with the visit.
+        data_tests:
+          - not_null
+
+      - name: visit_date
+        description: Date on which the visit occurred.
+        data_tests:
+          - not_null
+
+      - name: visit_status
+        description: Status of the visit after invalid visit records have been excluded.
+
+  - name: int_patient_current_age
+    description: >
+      Calculates each patient's current age using their date of birth and the
+      current date. Patients are also assigned to an age group for use in
+      downstream analytics and care-gap reporting.
+
+    columns:
+      - name: patient_id
+        description: Unique identifier for the patient.
+        data_tests:
+          - unique
+          - not_null
+
+      - name: date_of_birth
+        description: Patient's date of birth.
+        data_tests:
+          - not_null
+
+      - name: current_age
+        description: Patient's age in completed years as of the current date.
+        data_tests:
+          - not_null
+
+      - name: current_age_group
+        description: >
+          Age category assigned using the patient's current age. Expected
+          categories are 0-17, 18-44, 45-64, 65-75, and 76+.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - "0-17"
+                  - "18-44"
+                  - "45-64"
+                  - "65-75"
+                  - "76+"

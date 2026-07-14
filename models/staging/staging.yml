@@ -40,3 +40,164 @@ models:
 
       - name: primary_care_provider_id
         description: Identifier of the patient’s assigned primary care provider.
+
+  - name: stg_providers
+    description: >
+      Cleaned and standardized provider source data used by downstream
+      provider dimensions, visit facts, appointment facts, and reporting models.
+
+    config:
+      meta:
+        grain: One row per provider
+        layer: Staging
+
+    columns:
+      - name: provider_id
+        description: Unique identifier for the provider.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: first_name
+        description: Provider first name with surrounding whitespace removed.
+
+      - name: last_name
+        description: Provider last name with surrounding whitespace removed.
+
+      - name: specialty
+        description: Provider specialty with surrounding whitespace removed.
+
+      - name: active_yn
+        description: Indicates whether the provider is active.
+
+
+  - name: stg_visits
+    description: >
+      Cleaned and standardized visit source data. This model retains all source
+      visit records so downstream models can apply business rules for valid visits.
+
+    config:
+      meta:
+        grain: One row per visit
+        layer: Staging
+
+    columns:
+      - name: visit_id
+        description: Unique identifier for the visit.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: patient_id
+        description: Identifier of the patient associated with the visit.
+        data_tests:
+          - not_null
+
+      - name: provider_id
+        description: Identifier of the rendering provider associated with the visit.
+
+      - name: visit_date
+        description: Date on which the visit occurred.
+        data_tests:
+          - not_null
+
+      - name: visit_type
+        description: Standardized visit type.
+
+      - name: visit_status
+        description: Standardized visit status.
+
+      - name: deleted_yn
+        description: Indicates whether the source visit was marked as deleted.
+
+      - name: left_without_being_seen_yn
+        description: Indicates whether the patient left without being seen.
+
+
+  - name: stg_appointments
+    description: >
+      Cleaned and standardized appointment source data. This model retains all
+      appointment statuses for downstream scheduling and metric reporting.
+
+    config:
+      meta:
+        grain: One row per appointment
+        layer: Staging
+
+    columns:
+      - name: appointment_id
+        description: Unique identifier for the appointment.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: patient_id
+        description: Identifier of the patient associated with the appointment.
+        data_tests:
+          - not_null
+
+      - name: provider_id
+        description: Identifier of the scheduled provider.
+
+      - name: appointment_date
+        description: Scheduled appointment date.
+        data_tests:
+          - not_null
+
+      - name: appointment_time
+        description: Scheduled appointment time in 24-hour format.
+
+      - name: appointment_type
+        description: Standardized appointment type.
+
+      - name: appointment_status
+        description: Standardized appointment status.
+
+      - name: deleted_yn
+        description: Indicates whether the source appointment was marked as deleted.
+
+
+  - name: stg_lab_orders
+    description: >
+      Cleaned and standardized laboratory order source data used by downstream
+      resulted-lab, fact, and care-gap models.
+
+    config:
+      meta:
+        grain: One row per lab order
+        layer: Staging
+
+    columns:
+      - name: lab_order_id
+        description: Unique identifier for the lab order.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: patient_id
+        description: Identifier of the patient associated with the lab order.
+        data_tests:
+          - not_null
+
+      - name: provider_id
+        description: Identifier of the ordering provider.
+
+      - name: order_date
+        description: Date the laboratory order was placed.
+        data_tests:
+          - not_null
+
+      - name: result_date
+        description: Date the laboratory result became available.
+
+      - name: test_name
+        description: Standardized laboratory test name.
+
+      - name: result_value
+        description: Laboratory result value stored as source text.
+
+      - name: result_status
+        description: Standardized laboratory result status.
+
+      - name: deleted_yn
+        description: Indicates whether the source laboratory order was marked as deleted.

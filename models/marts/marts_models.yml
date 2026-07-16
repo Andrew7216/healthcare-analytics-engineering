@@ -128,7 +128,7 @@ models:
       - name: appointment_type
         description: Type of appointment that was scheduled.
 
-  - name: fct_lab_order
+  - name: fct_lab_results
     description: >
       Laboratory-order fact table containing one row per valid laboratory
       order. The model contains non-deleted laboratory orders that have a

@@ -9,5 +9,6 @@ SELECT
     TRIM(test_name) AS test_name,
     TRIM(result_value) AS result_value,
     TRIM(result_status) AS result_status,
-    deleted_yn
+    deleted_yn,
+    last_modified_date
 FROM {{ source('raw', 'lab_orders')}}

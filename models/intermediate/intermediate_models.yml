@@ -69,3 +69,78 @@ models:
                   - "45-64"
                   - "65-75"
                   - "76+"
+
+  - name: int_resulted_lab_orders
+    description: >
+      Incremental model containing the current state of each lab order.
+      New and updated records are merged using lab_order_id as the unique key
+      and last_modified_date to identify records that require processing.
+      The valid_lab_result_yn field identifies final, non-deleted lab results
+      with a populated result date for use in downstream models.
+
+    columns:
+      - name: lab_order_id
+        description: Unique identifier for the lab order.
+        data_tests:
+          - unique
+          - not_null
+
+      - name: patient_id
+        description: Unique identifier for the patient associated with the lab order.
+        data_tests:
+          - not_null
+
+      - name: provider_id
+        description: Unique identifier for the provider associated with the lab order.
+        data_tests:
+          - not_null
+
+      - name: order_date
+        description: Date the lab order was placed.
+        data_tests:
+          - not_null
+
+      - name: result_date
+        description: Date the lab result was recorded, when available.
+
+      - name: test_name
+        description: Name of the laboratory test.
+        data_tests:
+          - not_null
+
+      - name: result_value
+        description: Result value recorded for the laboratory test.
+
+      - name: result_status
+        description: Current status of the lab result.
+        data_tests:
+          - not_null
+
+      - name: deleted_yn
+        description: Indicates whether the lab order has been deleted.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - true
+                  - false
+
+      - name: last_modified_date
+        description: >
+          Timestamp of the most recent source-system modification. This field
+          is used to identify new and updated records during incremental runs.
+        data_tests:
+          - not_null
+
+      - name: valid_lab_result_yn
+        description: >
+          Indicates whether the lab order is a valid result. A valid result is
+          not deleted, has a populated result date, and has a Final status.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - true
+                  - false

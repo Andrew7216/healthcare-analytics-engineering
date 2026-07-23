@@ -1,0 +1,24 @@
+version: 2
+
+exposures:
+  - name: care_gap_outreach_dashboard
+    label: Care Gap Outreach Dashboard
+    type: dashboard
+    maturity: high
+
+    description: >
+      Dashboard used by care management staff to identify patients
+      with open care gaps and prioritize outreach efforts.
+
+    owner:
+      name: Andrew Jimenez
+      email: andrew@example.com
+
+    depends_on:
+      - ref('rpt_care_gap_outreach_worklist')
+
+    config:
+      tags:
+        - reporting
+        - care-gap
+        - power-bi
